@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { NavBar } from "@/components/NavBar";
 import { ExpenseForm } from "@/components/ExpenseForm";
 import { Card } from "@/components/ui";
+import { DeleteExpenseButton } from "@/components/DeleteExpenseButton";
 
 export default async function ExpensesPage() {
   const user = await getSessionUser();
@@ -43,7 +44,9 @@ export default async function ExpensesPage() {
         <h1 className="text-lg font-bold text-slate-900">Add Expense</h1>
 
         <ExpenseForm
-          users={(users as any[]).map((u: any) => ({
+          users={(users as any[])
+          .filter((u: any) => u.role !== "ADMIN")
+          .map((u: any) => ({
             id: u.id,
             displayName: u.displayName,
           }))}
@@ -73,9 +76,12 @@ export default async function ExpensesPage() {
                   </p>
                 </div>
 
-                <p className="font-bold text-slate-900">
-                  ₹{new Decimal(e.amount.toString()).toFixed(2)}
-                </p>
+                <div className="flex flex-col items-end gap-2">
+                  <p className="font-bold text-slate-900">
+                    ₹{new Decimal(e.amount.toString()).toFixed(2)}
+                  </p>
+                  <DeleteExpenseButton expenseId={e.id} />
+                </div>
               </div>
 
               <div className="mt-2 flex flex-wrap gap-1.5">
