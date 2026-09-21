@@ -36,7 +36,7 @@ export function NavBar({ displayName, role }: NavBarProps) {
             <span className="text-sm text-slate-600 hidden sm:inline">{displayName}</span>
             {role === "ADMIN" && (
               <Link
-                href="/admin/users"
+                href="/admin"
                 className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium"
               >
                 Admin

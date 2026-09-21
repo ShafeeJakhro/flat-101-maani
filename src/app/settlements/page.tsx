@@ -4,7 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { NavBar } from "@/components/NavBar";
 import { SettlementForm } from "@/components/SettlementForm";
-import { Card } from "@/components/ui";
+import { SettlementHistory } from "@/components/SettlementHistory";
 
 export default async function SettlementsPage() {
   const user = await getSessionUser();
@@ -19,6 +19,14 @@ export default async function SettlementsPage() {
     }),
   ]);
 
+  // Serialize Decimal to string for client component
+  const serializedSettlements = settlements.map((s) => ({
+    ...s,
+    amount: s.amount.toString(),
+    date: s.date.toISOString(),
+    createdAt: s.createdAt.toISOString(),
+  }));
+
   return (
     <div className="pb-24">
       <NavBar displayName={user.displayName} role={user.role} />
@@ -26,21 +34,7 @@ export default async function SettlementsPage() {
         <h1 className="text-lg font-bold text-slate-900">Record Settlement</h1>
         <SettlementForm users={users.map((u: any) => ({ id: u.id, displayName: u.displayName }))} />
 
-        <h2 className="text-lg font-bold text-slate-900 pt-2">Settlement History</h2>
-        <Card className="divide-y divide-slate-100 !p-0">
-          {settlements.length === 0 && <p className="p-4 text-sm text-slate-400">No settlements yet.</p>}
-          {(settlements as any[]).map((s: any) => (
-            <div key={s.id} className="p-3 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-900">
-                  {s.payer.displayName} → {s.receiver.displayName}
-                </p>
-                <p className="text-xs text-slate-500">{new Date(s.date).toLocaleDateString()}{s.notes ? ` · ${s.notes}` : ""}</p>
-              </div>
-              <p className="text-sm font-bold text-green-600">₹{new Decimal(s.amount.toString()).toFixed(2)}</p>
-            </div>
-          ))}
-        </Card>
+        <SettlementHistory settlements={serializedSettlements as any[]} />
       </main>
     </div>
   );

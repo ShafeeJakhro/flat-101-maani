@@ -36,7 +36,12 @@ export interface UserBalanceRow {
 
 export async function getAllBalances(): Promise<UserBalanceRow[]> {
   const [users, debts, settlements, adjustments] = await Promise.all([
-    prisma.user.findMany({ where: { isActive: true } }),
+    prisma.user.findMany({
+      where: {
+        isActive: true,
+        role: "USER",
+      },
+    }),
     getAllExpenseDebts(),
     prisma.settlement.findMany(),
     prisma.adjustment.findMany(),

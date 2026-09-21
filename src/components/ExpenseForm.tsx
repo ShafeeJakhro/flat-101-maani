@@ -9,7 +9,13 @@ interface UserOption {
   displayName: string;
 }
 
-export function ExpenseForm({ users }: { users: UserOption[] }) {
+export function ExpenseForm({
+  users,
+  monthId,
+}: {
+  users: UserOption[];
+  monthId: string;
+})  {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
@@ -38,7 +44,15 @@ export function ExpenseForm({ users }: { users: UserOption[] }) {
       const res = await fetch("/api/expenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, amount, paidById, participantIds, date, notes }),
+        body: JSON.stringify({
+  monthId,
+  title,
+  amount,
+  paidById,
+  participantIds,
+  date,
+  notes,
+}),
       });
       const data = await res.json();
       if (!res.ok) {

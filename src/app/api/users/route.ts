@@ -11,7 +11,7 @@ export async function GET() {
     await requireUser();
     const users = await prisma.user.findMany({
       where: { isActive: true },
-      select: { id: true, username: true, displayName: true, role: true },
+      select: { id: true, username: true, displayName: true, role: true, isActive: true },
       orderBy: { displayName: "asc" },
     });
     return NextResponse.json({ users });

@@ -26,24 +26,65 @@ export async function POST(request: Request) {
     await requireAdmin();
     const body = await request.json().catch(() => null);
     const parsed = CreateSettlementSchema.safeParse(body);
+
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input." }, { status: 400 });
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid input." },
+        { status: 400 }
+      );
     }
+
     const { payerId, receiverId, amount, date, notes } = parsed.data;
+    const settlementDate = new Date(date);
+
+    if (Number.isNaN(settlementDate.getTime())) {
+      return NextResponse.json(
+        { error: "Invalid settlement date." },
+        { status: 400 }
+      );
+    }
+
+    const monthRecord = await (prisma as any).month.findUnique({
+      where: {
+        year_month: {
+          year: settlementDate.getFullYear(),
+          month: settlementDate.getMonth() + 1,
+        },
+      },
+    });
+
+    if (!monthRecord) {
+      return NextResponse.json(
+        {
+          error:
+            "No month exists for the selected settlement date. Start that month first.",
+        },
+        { status: 400 }
+      );
+    }
 
     const users = await prisma.user.findMany({
-      where: { id: { in: [payerId, receiverId] }, isActive: true },
+      where: {
+        id: { in: [payerId, receiverId] },
+        isActive: true,
+        role: "USER",
+      },
     });
+
     if (users.length !== 2) {
-      return NextResponse.json({ error: "Payer or receiver is invalid or inactive." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Payer or receiver is invalid or inactive." },
+        { status: 400 }
+      );
     }
 
     const settlement = await prisma.settlement.create({
       data: {
+        monthId: monthRecord.id,
         payerId,
         receiverId,
         amount: new Decimal(amount).toFixed(2),
-        date: new Date(date),
+        date: settlementDate,
         notes,
       },
     });
@@ -57,6 +98,7 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     await requireUser();
+
     const settlements = await prisma.settlement.findMany({
       include: {
         payer: { select: { id: true, displayName: true } },
@@ -64,6 +106,7 @@ export async function GET() {
       },
       orderBy: { date: "desc" },
     });
+
     return NextResponse.json({ settlements });
   } catch (err) {
     return handleApiError(err);
