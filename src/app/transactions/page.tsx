@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Decimal from "decimal.js";
 import { NavBar } from "@/components/NavBar";
@@ -127,7 +127,7 @@ const styles = {
   },
 };
 
-export default function TransactionsPage() {
+function TransactionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -506,5 +506,13 @@ export default function TransactionsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function TransactionsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <TransactionsContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Decimal from "decimal.js";
 
@@ -147,7 +147,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
 };
 
-export default function AdminExpensesPage() {
+function AdminExpensesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const monthId = searchParams.get("monthId");
@@ -417,5 +417,14 @@ export default function AdminExpensesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+
+export default function AdminExpensesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AdminExpensesContent />
+    </Suspense>
   );
 }
