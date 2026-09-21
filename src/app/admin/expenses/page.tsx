@@ -8,6 +8,7 @@ interface User {
   id: string;
   displayName: string;
   username: string;
+  role: "ADMIN" | "USER";
 }
 
 interface Expense {
@@ -253,6 +254,32 @@ function AdminExpensesContent() {
     }
   }
 
+  async function handleDeleteExpense(id: string) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this expense?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/expenses/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Expense deleted successfully");
+        fetchData();
+      } else {
+        alert(data.error || "Failed to delete expense");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Error deleting expense");
+    }
+  }
+
   if (loading) {
     return (
       <div style={styles.container}>
@@ -330,7 +357,7 @@ function AdminExpensesContent() {
                 style={styles.formInput as React.CSSProperties}
               >
                 <option value="">Select...</option>
-                {users.map((u) => (
+                {users.filter((u) => u.role !== "ADMIN").map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.displayName}
                   </option>
@@ -342,7 +369,7 @@ function AdminExpensesContent() {
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Split Among (select at least one, including payer)</label>
               <div style={styles.checkboxGrid as React.CSSProperties}>
-                {users.map((u) => (
+                {users.filter((u) => u.role !== "ADMIN").map((u) => (
                   <label key={u.id} style={styles.checkboxLabel as React.CSSProperties}>
                     <input
                       type="checkbox"
@@ -395,11 +422,12 @@ function AdminExpensesContent() {
                   <th style={styles.tableHeaderCell as React.CSSProperties}>Paid By</th>
                   <th style={styles.tableHeaderCell as React.CSSProperties}>Date</th>
                   <th style={{ ...styles.tableHeaderCell, textAlign: "right" } as React.CSSProperties}>Amount</th>
+              <th style={styles.tableHeaderCell as React.CSSProperties}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {expenses.map((exp, idx) => (
-                  <tr key={idx} style={styles.tableRow as React.CSSProperties}>
+                  <tr key={exp.id} style={styles.tableRow as React.CSSProperties}>
                     <td style={styles.tableCell as React.CSSProperties}>
                       <div style={{ fontWeight: "500", marginBottom: "4px" }}>{exp.title}</div>
                       {exp.notes && <div style={{ fontSize: "12px", color: "#999" }}>{exp.notes}</div>}
@@ -408,6 +436,22 @@ function AdminExpensesContent() {
                     <td style={styles.tableCell as React.CSSProperties}>{new Date(exp.date).toLocaleDateString("en-IN")}</td>
                     <td style={{ ...styles.tableCell, textAlign: "right", fontWeight: "600" } as React.CSSProperties}>
                       Rs. {new Decimal(exp.amount).toFixed(2)}
+                    </td>
+                    <td style={styles.tableCell as React.CSSProperties}>
+                      <button
+                        onClick={() => handleDeleteExpense(exp.id)}
+                        style={{
+                          padding: "6px 10px",
+                          backgroundColor: "#dc3545",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "5px",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                        }}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
